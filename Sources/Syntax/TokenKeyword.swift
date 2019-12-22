@@ -13,4 +13,7 @@ public enum TokenKeyword: String {
     case `if` = "if"
     case `else` = "else"
     case `return` = "return"
+  	case contains = "contains"
+    case `in` = "in"
+
 }

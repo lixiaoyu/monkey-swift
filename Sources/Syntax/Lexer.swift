@@ -30,6 +30,12 @@ public final class Lexer {
             tokenType = .equal
         case "=":
             tokenType = .assign
+        case "|" where peekCharacter() == "|":
+          setNextCharacter()
+          tokenType = .or
+        case "&" where peekCharacter() == "&":
+          setNextCharacter()
+          tokenType = .and
         case "+":
             tokenType = .plus
         case "-":

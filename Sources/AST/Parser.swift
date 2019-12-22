@@ -199,12 +199,10 @@ public final class Parser {
     private func parseGroupedExpression() throws -> ExpressionType {
         // (
         consumeToken()
-        
-        // x
+       // x   3+(3+2*4)
         guard let expression = try parseExpression() else {
             throw ParserError.expressionParsingFailed(token: currentToken)
         }
-        
         // )
         try consumeTokenIf(.rightParen)
         
@@ -298,8 +296,11 @@ public final class Parser {
     
     private func parseInfixOperator(with left: ExpressionType) throws -> ExpressionType? {
         switch peekToken.type {
-        case .plus, .minus, .slash, .asterisk, .equal, .notEqual, .lessThan, .greaterThan:
+        case .plus, .minus, .slash, .asterisk, .equal, .notEqual, .lessThan, .greaterThan, .or, .and, .contains:
             consumeToken()
+            return try parseInfixExpression(with: left)
+          case .in:
+            consumeToken() // in
             return try parseInfixExpression(with: left)
         case .leftParen:
             consumeToken()
@@ -371,10 +372,15 @@ public final class Parser {
         return StringLiteral(token: .makeString(string: currentToken.literal))
     }
     
-    private func parseArrayLiteral() throws -> ArrayLiteral {
+    private func parseArrayLiteral() throws -> ExpressionType {
         let arrayToken = currentToken
         let elements = try parseExpressionList(until: .rightBracket)
-        return ArrayLiteral(token: arrayToken, elements:elements)
+      	let arrayExpression = ArrayLiteral(token: arrayToken, elements:elements)
+
+      guard let infixExpression = try parseInfixOperator(with: arrayExpression) else {
+        return arrayExpression
+      }
+      return infixExpression
     }
     
     private func parseDictionaryLiteral() throws -> HashLiteral {

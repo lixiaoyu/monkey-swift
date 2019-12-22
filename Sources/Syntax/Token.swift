@@ -12,13 +12,15 @@ public enum TokenType {
     case identifier, int, string
     
     // Operators
-    case assign, plus, minus, bang, asterisk, slash, comma, colon, semicolon, lessThan, greaterThan, equal, notEqual
+    case assign, plus, minus, bang, asterisk, slash, comma, colon, semicolon, lessThan, greaterThan, equal, notEqual, or, and
+  // operator for array
+  	case contains, `in`
     
     case leftParen, rightParen, leftBrace, rightBrace, leftBracket, rightBracket
     
     // Keywords
     case function, `let`, `true`, `false`, `if`, `else`, `return`
-    
+      
     public init(symbol: Character) {
         guard let symbol = TokenSymbol(rawValue: symbol) else {
             self = .unknown
@@ -37,6 +39,8 @@ public enum TokenType {
         case .semicolon: self = .semicolon
         case .lessThan: self = .lessThan
         case .greaterThan: self = .greaterThan
+        case .or: self = .or
+        case .and: self = .and
         case .leftParen: self = .leftParen
         case .rightParen: self = .rightParen
         case .leftBrace: self = .leftBrace
@@ -67,6 +71,8 @@ public enum TokenType {
         case .if: self = .if
         case .else: self = .else
         case .return: self = .return
+        case .contains: self = .contains
+        case .in: self = .in
         }
     }
 }
@@ -100,12 +106,16 @@ public struct Token {
         case .greaterThan: literal = String(TokenSymbol.greaterThan.rawValue)
         case .equal: literal = String(TokenSymbol.equal.rawValue) + String(TokenSymbol.equal.rawValue)
         case .notEqual: literal = String(TokenSymbol.bang.rawValue) + String(TokenSymbol.equal.rawValue)
+        case .or: literal = String(TokenSymbol.or.rawValue) + String(TokenSymbol.or.rawValue)
+        case .and: literal = String(TokenSymbol.and.rawValue) + String(TokenSymbol.and.rawValue)
         case .leftParen: literal = String(TokenSymbol.leftParen.rawValue)
         case .rightParen: literal = String(TokenSymbol.rightParen.rawValue)
         case .leftBrace: literal = String(TokenSymbol.leftBrace.rawValue)
         case .rightBrace: literal = String(TokenSymbol.rightBrace.rawValue)
         case .leftBracket: literal = String(TokenSymbol.leftBracket.rawValue)
         case .rightBracket: literal = String(TokenSymbol.rightBracket.rawValue)
+        case .contains: literal = TokenKeyword.contains.rawValue
+        case .in: literal = TokenKeyword.in.rawValue
         case .function: literal = TokenKeyword.fn.rawValue
         case .let: literal = TokenKeyword.let.rawValue
         case .true: literal = TokenKeyword.true.rawValue

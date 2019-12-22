@@ -170,8 +170,20 @@ public final class Evaluator {
             return (leftBoolean.value != rightBoolean.value)
                 .map(BooleanObject.init)
                 .map(AnyHashableObject.init)
+        case (let leftBoolean as BooleanObject, let rightBoolean as BooleanObject) where `operator` == Token(type: .or).literal:
+          return (leftBoolean.value || rightBoolean.value)
+            .map(BooleanObject.init)
+            .map(AnyHashableObject.init)
+        case (let leftBoolean as BooleanObject, let rightBoolean as BooleanObject) where `operator` == Token(type: .and).literal:
+          return (leftBoolean.value && rightBoolean.value)
+            .map(BooleanObject.init)
+            .map(AnyHashableObject.init)
         case (let leftString as StringObject, let rightString as StringObject):
             return try evaluateStringInfixExpression(left: leftString, operator: `operator`, right: rightString)
+        case (let leftArray as ArrayObject, let rightString as StringObject):
+          	return try evaluateArrayInfixExpression(left: leftArray, operator: `operator`, right: rightString)
+        case (let leftString as StringObject, let rightArray as ArrayObject):
+            return try evaluateStringInArrayInfixExpression(left: leftString, operator: `operator`, right: rightArray)
         case _ where left.kind != right.kind:
             throw EvaluatorError.typeMissMatch(left: left.kind, operator: `operator`, right: right.kind)
         default:
@@ -208,16 +220,53 @@ public final class Evaluator {
         }
     }
     
+  private func evaluateStringInArrayInfixExpression(left: StringObject, operator: String, right: ArrayObject) throws -> ObjectType {
+    switch `operator` {
+      case Token(type: .in).literal:
+        let elements = right.elements
+        let exist = elements.contains{ (obj) -> Bool in
+          let val = obj.unwrapReturnValue()
+          return val.description == left.value
+        }
+        return exist.map(BooleanObject.init)
+          .map(AnyHashableObject.init)
+      default:
+        throw EvaluatorError.unknownOperator(left: left.kind, operator: `operator`, right: right.kind)
+    }
+  }
+
     private func evaluateStringInfixExpression(left: StringObject, operator: String, right: StringObject) throws -> ObjectType {
         switch `operator` {
         case Token(type: .plus).literal:
             return (left.value + right.value)
                 .map(StringObject.init)
                 .map(AnyHashableObject.init)
+        case Token(type: .equal).literal:
+            return (left.value == right.value)
+              .map(BooleanObject.init)
+              .map(AnyHashableObject.init)
+        case Token(type: .equal).literal:
+            return (left.value != right.value)
+              .map(BooleanObject.init)
+              .map(AnyHashableObject.init)
         default:
             throw EvaluatorError.unknownOperator(left: left.kind, operator: `operator`, right: right.kind)
         }
     }
+  private func evaluateArrayInfixExpression(left: ArrayObject, operator: String, right: StringObject) throws -> ObjectType {
+    switch `operator` {
+      case Token(type: .contains).literal:
+        let elements = left.elements
+        let exist = elements.contains{ (obj) -> Bool in
+          let val = obj.unwrapReturnValue()
+          return val.description == right.value
+        }
+        return exist.map(BooleanObject.init)
+          .map(AnyHashableObject.init)
+      default:
+        throw EvaluatorError.unknownOperator(left: left.kind, operator: `operator`, right: right.kind)
+    }
+  }
     
     private func evaluate(ifStatement: IfStatement, with environment: EnvironmentType) throws -> ObjectType {
         let condition = (try evaluate(node: ifStatement.condition, with: environment)).unwrapHashableObject()
